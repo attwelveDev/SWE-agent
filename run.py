@@ -367,15 +367,15 @@ class Main:
         setup_args = {"issue": issue, "files": files, "test_files": test_files, "tests": tests}
         challenge = self.env.challenge
         if challenge is not None:
-            setup_args["flag_format"] = extract_flag_format(challenge["flag"])
+            # setup_args["flag_format"] = extract_flag_format(challenge["flag"])
             setup_args["name"] = challenge["name"]
             setup_args["description"] = challenge["description"]
-            setup_args["category_friendly"] = challenge["category_friendly"]
-            setup_args["points"] = challenge["points"]
-            setup_args["files"] = challenge["files"] or "No files included in this challenge."
-            setup_args["box"] = challenge.get("server_name")
-            setup_args["port"] = challenge.get("port")
-            setup_args["server_description"] = challenge.get("server_description")
+            # setup_args["category_friendly"] = challenge["category_friendly"]
+            # setup_args["points"] = challenge["points"]
+            # setup_args["files"] = challenge["files"] or "No files included in this challenge."
+            # setup_args["box"] = challenge.get("server_name")
+            # setup_args["port"] = challenge.get("port")
+            # setup_args["server_description"] = challenge.get("server_description")
         info, trajectory = self.agent.run(
             setup_args=setup_args,
             env=self.env,

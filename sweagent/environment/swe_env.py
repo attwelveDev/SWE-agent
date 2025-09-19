@@ -59,7 +59,7 @@ from sweagent.utils.config import keys_config
 from sweagent.utils.log import default_logger, get_logger
 
 LONG_TIMEOUT = float(keys_config.get("SWE_AGENT_ENV_LONG_TIMEOUT", 500))
-AGENT_ACTION_TIMEOUT = float(keys_config.get("SWE_AGENT_ACTION_TIMEOUT", 25))
+AGENT_ACTION_TIMEOUT = float(keys_config.get("SWE_AGENT_ACTION_TIMEOUT", 500))
 AGENT_ACTION_NO_OUTPUT_TIMEOUT = float(keys_config.get("SWE_AGENT_ACTION_NO_OUTPUT_TIMEOUT", AGENT_ACTION_TIMEOUT))
 PATH_TO_REQS = "/root/requirements.txt"
 PATH_TO_ENV_YML = "/root/environment.yml"
@@ -250,24 +250,26 @@ class SWEEnv(gym.Env):
         assert self.record is not None  # mypy
         for hook in self.hooks:
             hook.on_copy_repo_started(repo_type=self.record["repo_type"], repo_path=self.record["repo"])
+
+        # import pdb; pdb.set_trace()
         if self.record["repo_type"] == "local":
-            if "challenge" in self.record:
-                self.communicate_with_handling(
-                    input=f"mkdir {self._repo_name}", error_msg=f"Failed to create {self._repo_name} in container"
-                )
-                for file_name in self.record["challenge"]["files"]:
-                    self.logger.debug(f"Copying file {file_name} to container")
-                    copy_anything_to_container(
-                        self.container_obj,
-                        str(Path(self.record["repo"].removeprefix("local://")) / file_name),
-                        "/" + self._repo_name,
-                    )
-            else:
-                copy_anything_to_container(
-                    self.container_obj,
-                    self.record["repo"].removeprefix("local://"),
-                    "/" + self._repo_name,
-                )
+            # if "challenge" in self.record:
+            #     self.communicate_with_handling(
+            #         input=f"mkdir {self._repo_name}", error_msg=f"Failed to create {self._repo_name} in container"
+            #     )
+            #     for file_name in self.record["challenge"]["files"]:
+            #         self.logger.debug(f"Copying file {file_name} to container")
+            #         copy_anything_to_container(
+            #             self.container_obj,
+            #             str(Path(self.record["repo"].removeprefix("local://")) / file_name),
+            #             "/" + self._repo_name,
+            #         )
+            # else:
+            copy_anything_to_container(
+                self.container_obj,
+                self.record["repo"].removeprefix("local://"),
+                "/" + self._repo_name,
+            )
             self.communicate_with_handling(
                 input=f"chown -R root:root {self._repo_name}",
                 error_msg="Failed to change permissions on copied repository",
@@ -364,7 +366,7 @@ class SWEEnv(gym.Env):
                 self.logger.info(f"Cached image {cached_image} not found, rebuilding task environment...")
 
         # Init docker network
-        self._init_docker_network()
+        # self._init_docker_network()
 
         # Clone repository if not already cloned
         self.communicate(input="cd /")
@@ -943,8 +945,11 @@ class SWEEnv(gym.Env):
         communicate_method = keys_config.get(
             "SWE_AGENT_COMMUNICATE_METHOD", default="end-marker", choices=["end-marker", "processes"]
         )
+        # self.logger.debug(f"_communicate input: {input}")
         if communicate_method == "end-marker":
-            return self._communicate_experimental(input, timeout_duration, no_output_timeout_duration)
+            buffer = self._communicate_experimental(input, timeout_duration, no_output_timeout_duration)
+            # self.logger.debug(f"_communicate output: {buffer}")
+            return buffer
         try:
             self.returncode = None
             cmd = input if input.endswith("\n") else input + "\n"
@@ -969,6 +974,7 @@ class SWEEnv(gym.Env):
             msg = f"Failed to get exit code. Output:\n---\n{buffer}\n---"
             raise RuntimeError(msg)
         self.returncode = int(exit_code)
+        # self.logger.debug(f"_communicate output: {buffer}")
         return buffer
 
     def _check_syntax(self, input: str) -> tuple[str, bool]:

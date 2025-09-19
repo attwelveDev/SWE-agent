@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
     bsdmainutils \
     tshark \
     openjdk-17-jdk \
+    maven \
     && rm -rf /var/lib/apt/lists/*
 
 # Install radare2

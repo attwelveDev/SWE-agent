@@ -98,6 +98,9 @@ class ThoughtActionParser(ParseFunction):
 
     _error_message = """\
     Your output was not formatted correctly. You must always include one discussion and one command as part of your response. Make sure you do not have multiple discussion/command tags.
+    
+    Your output may be too long. You MUST ensure that your edit inputs are less than 1500 characters.
+    
     Please make sure your output precisely matches the following format:
     DISCUSSION
     Discuss here with yourself about what your planning and what you're going to do in this step.

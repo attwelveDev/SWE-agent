@@ -745,6 +745,16 @@ class InstanceBuilder:
                 f"The challenge web server is running on `{server_name}` port `{port}` and you can access it from within the container environment using `connect_start {server_name} {port}`."
             )
 
+    def set_problem_statement_from_call_chain_json(self, file_path: str) -> None:
+        """For exploiting vulnerabilities in call chains"""
+        challenge = json.loads(Path(file_path).read_text())
+        self.args["challenge"] = challenge
+        self.set_problem_statement_from_text(f"{challenge['name']} {challenge['vul']} {challenge['chain']}")
+        self.args["instance_id"] = (
+            # sanitize 'name' to only alphanumeric characters
+            "".join(a for a in self.args["challenge"]["name"] if a.isalnum())
+        )
+
     def set_problem_statement_from_challenge_json(self, file_path: str) -> None:
         """For CTF challenges"""
         challenge = json.loads(Path(file_path).read_text())
@@ -769,7 +779,9 @@ class InstanceBuilder:
         )
 
     def set_problem_statement_from_file(self, file_path: str):
-        if Path(file_path).name == "challenge.json":
+        if Path(file_path).name.endswith("call_chain.json"):
+            self.set_problem_statement_from_call_chain_json(file_path)
+        elif Path(file_path).name == "challenge.json":
             self.set_problem_statement_from_challenge_json(file_path)
         else:
             self.set_problem_statement_from_text(Path(file_path).read_text())
@@ -903,7 +915,9 @@ def get_instances(
         file_path.startswith("text://")
         or (
             Path(file_path).is_file()
-            and (Path(file_path).suffix in [".md", ".txt"] or Path(file_path).name == "challenge.json")
+            and (Path(file_path).suffix in [".md", ".txt"]
+                 or Path(file_path).name.endswith("call_chain.json")
+                 or Path(file_path).name == "challenge.json")
         )
         or is_github_issue_url(file_path)
     ):

@@ -251,7 +251,6 @@ class SWEEnv(gym.Env):
         for hook in self.hooks:
             hook.on_copy_repo_started(repo_type=self.record["repo_type"], repo_path=self.record["repo"])
 
-        # import pdb; pdb.set_trace()
         if self.record["repo_type"] == "local":
             # if "challenge" in self.record:
             #     self.communicate_with_handling(
@@ -665,19 +664,19 @@ class SWEEnv(gym.Env):
         # Record submission and end episode if `submit` keyword found
         submission = self.get_submission(observation)
         if submission is not None:
-            if self.validate_submission(submission):
-                self.logger.info(f"Found submission: {submission}")
-                info["exit_status"] = "submitted"
-                info["submission"] = submission if submission.strip() != "" else None
-                info.update(self._get_edited_files_with_context(patch=submission))  # type: ignore
-                observation = submission if submission.strip() != "" else None
-                return observation, 0, True, info
-            else:
-                # Currently only validating CTF challenges
-                assert self.challenge is not None
-                self.logger.warning(f"Wrong submission found: {submission} (real flag is {self.challenge['flag']})")
-                observation = "Wrong flag!"
-                return observation, 0, False, info
+            # if self.validate_submission(submission):
+            self.logger.info(f"Found submission: {submission}")
+            info["exit_status"] = "submitted"
+            info["submission"] = submission if submission.strip() != "" else None
+            info.update(self._get_edited_files_with_context(patch=submission))  # type: ignore
+            observation = submission if submission.strip() != "" else None
+            return observation, 0, True, info
+            # else:
+            #     # Currently only validating CTF challenges
+            #     assert self.challenge is not None
+            #     self.logger.warning(f"Wrong submission found: {submission} (real flag is {self.challenge['flag']})")
+            #     observation = "Wrong flag!"
+            #     return observation, 0, False, info
 
         observation = self._handle_interactive_commands(observation)
 
@@ -945,10 +944,9 @@ class SWEEnv(gym.Env):
         communicate_method = keys_config.get(
             "SWE_AGENT_COMMUNICATE_METHOD", default="end-marker", choices=["end-marker", "processes"]
         )
-        # self.logger.debug(f"_communicate input: {input}")
+        # import pdb; pdb.set_trace()
         if communicate_method == "end-marker":
             buffer = self._communicate_experimental(input, timeout_duration, no_output_timeout_duration)
-            # self.logger.debug(f"_communicate output: {buffer}")
             return buffer
         try:
             self.returncode = None
@@ -974,7 +972,6 @@ class SWEEnv(gym.Env):
             msg = f"Failed to get exit code. Output:\n---\n{buffer}\n---"
             raise RuntimeError(msg)
         self.returncode = int(exit_code)
-        # self.logger.debug(f"_communicate output: {buffer}")
         return buffer
 
     def _check_syntax(self, input: str) -> tuple[str, bool]:

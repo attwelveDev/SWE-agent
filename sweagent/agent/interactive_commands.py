@@ -39,6 +39,13 @@ INTERACTIVE_SESSIONS_CONFIG = {
         exit_command="debug_stop",
         quit_commands_in_session=["quit"],
     ),
+    "jdb": InteractiveSessionConfig(
+        cmdline="jdb",
+        terminal_prompt_pattern="(jdb) ",
+        start_command="debug_start",
+        exit_command="debug_exit",
+        quit_commands_in_session=["exit"],
+    ),
     "connect": InteractiveSessionConfig(
         cmdline="/root/commands/_connect",
         terminal_prompt_pattern="(nc) ",

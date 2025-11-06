@@ -369,7 +369,8 @@ class Main:
         if challenge is not None:
             # setup_args["flag_format"] = extract_flag_format(challenge["flag"])
             setup_args["name"] = challenge["name"]
-            setup_args["description"] = challenge["description"]
+            setup_args["chain"] = challenge["chain"]
+            setup_args["vul"] = challenge["vul"]
             # setup_args["category_friendly"] = challenge["category_friendly"]
             # setup_args["points"] = challenge["points"]
             # setup_args["files"] = challenge["files"] or "No files included in this challenge."
@@ -477,13 +478,13 @@ class Main:
             KEY_INSTANCE_ID: instance_id,
             KEY_PREDICTION: model_patch,
         }
-        if challenge is not None:
-            challenge_datum = {
-                "challenge_name": challenge["name"],
-                "challenge_category": challenge["category"],
-                "challenge_path": challenge["file_path"],
-            }
-            datum.update(challenge_datum)
+        # if challenge is not None:
+        #     challenge_datum = {
+        #         "challenge_name": challenge["name"],
+        #         "challenge_category": challenge["category"],
+        #         "challenge_path": challenge["file_path"],
+        #     }
+        #     datum.update(challenge_datum)
         with open(output_file, "a+") as fp:
             print(json.dumps(datum), file=fp, flush=True)
         logger.info(f"Saved predictions to {output_file}")

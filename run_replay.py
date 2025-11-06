@@ -65,6 +65,7 @@ def process_single_traj(traj_path: str, config_file: str, data_path: str, suffix
 
     is_other = False
     is_ctf = False
+    is_vulnerabilities = False
     if data_path.endswith(".jsonl"):
         replay_task_instances_path = create_task_instances_tmp_file(
             [json.loads(x) for x in Path(data_path).read_text().splitlines(keepends=True)],
@@ -73,6 +74,10 @@ def process_single_traj(traj_path: str, config_file: str, data_path: str, suffix
         replay_task_instances_path = data_path
         is_other = True
         is_ctf = True
+    elif data_path.endswith("call_chain.json"):
+        replay_task_instances_path = data_path
+        is_other = True
+        is_vulnerabilities = True
     elif data_path.endswith(".json"):
         with open(data_path) as file:
             data = json.load(file)
@@ -101,7 +106,7 @@ def process_single_traj(traj_path: str, config_file: str, data_path: str, suffix
         run_args.extend(["--skip_existing", "False"])
     if suffix is not None:
         run_args.extend(["--suffix", suffix])
-    if is_ctf:
+    if is_ctf or is_vulnerabilities:
         run_args.extend(["--repo_path", str(Path(data_path).parent)])
         run_args.extend(["--image_name", "sweagent/enigma:latest"])
     script_args = runscript.get_args(run_args)

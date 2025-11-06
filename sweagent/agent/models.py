@@ -317,6 +317,8 @@ class OpenAIModel(BaseModel):
             response = self.client.chat.completions.create(
                 messages=self.history_to_messages(history),
                 model=self.api_model,
+                # model="google/gemma-2-9b-it:free",
+                # model="DeepSeek-R1",
                 temperature=self.args.temperature,
                 top_p=self.args.top_p,
             )
@@ -341,12 +343,31 @@ class DeepSeekModel(OpenAIModel):
             "cost_per_input_token": 1.4e-07,
             "cost_per_output_token": 2.8e-07,
         },
+        "DeepSeek-R1": {
+            "max_context": 128_000,
+            "cost_per_input_token": 1.35e-06,
+            "cost_per_output_token": 5.4e-06,
+        },
     }
     SHORTCUTS = {}
 
     def _setup_client(self) -> None:
         api_base_url: str = keys_config["DEEPSEEK_API_BASE_URL"]
         self.client = OpenAI(api_key=keys_config["DEEPSEEK_API_KEY"], base_url=api_base_url)
+
+class GrokModel(OpenAIModel):
+    MODELS = {
+        "grok-4-fast-reasoning": {
+            "max_context": 2_000_000,
+            "cost_per_input_token": 2.0e-07,
+            "cost_per_output_token": 5.0e-07,
+        }
+    }
+    SHORTCUTS = {}
+
+    def _setup_client(self) -> None:
+        api_base_url: str = keys_config["GROK_API_BASE_URL"]
+        self.client = OpenAI(api_key=keys_config["GROK_API_KEY"], base_url=api_base_url)
 
 
 class GroqModel(OpenAIModel):
@@ -376,7 +397,12 @@ class GroqModel(OpenAIModel):
             "cost_per_input_token": 0,
             "cost_per_output_token": 0,
         },
-        "gemma2-9b-it": {
+        "Llama-4-Maverick-17B-128E-Instruct-FP8": {
+            "max_context": 512_000,
+            "cost_per_input_token": 1.9e-07,
+            "cost_per_output_token": 4.9e-07,
+        },
+        "gemma2-9b-it:free": {
             "max_context": 8192,
             "cost_per_input_token": 2e-07,
             "cost_per_output_token": 2e-07,
@@ -399,14 +425,16 @@ class GroqModel(OpenAIModel):
         "groq/llamaguard8": "llama-guard-3-8b",
         "groq/llamainstant8": "llama-3.1-8b-instant",
         "groq/llamaversatile70": "llama-3.1-70b-versatile",
-        "groq/gemma9it": "gemma2-9b-it",
+        "groq/llama4maverick": "Llama-4-Maverick-17B-128E-Instruct-FP8",
+        "groq/gemma9it": "gemma2-9b-it:free",
         "groq/gemma7it": "gemma-7b-it",
         "groq/mixtral8x7": "mixtral-8x7b-32768",
     }
 
     def _setup_client(self) -> None:
-        self.client = Groq(
-            api_key=keys_config["GROQ_API_KEY"],
+        # self.client = Groq(
+        self.client = OpenAI(
+            api_key=keys_config["GROQ_API_KEY"], base_url=keys_config["GROQ_API_BASE_URL"]
         )
 
 
@@ -1014,8 +1042,10 @@ def get_model(args: ModelArguments, commands: list[Command] | None = None):
         return BedrockModel(args, commands)
     elif args.model_name.startswith("ollama"):
         return OllamaModel(args, commands)
-    elif args.model_name.startswith("deepseek"):
+    elif args.model_name.startswith("deepseek") or args.model_name.startswith("DeepSeek"):
         return DeepSeekModel(args, commands)
+    elif args.model_name.startswith("grok"):
+        return GrokModel(args, commands)
     elif args.model_name in TogetherModel.SHORTCUTS:
         return TogetherModel(args, commands)
     elif args.model_name in GroqModel.SHORTCUTS:
